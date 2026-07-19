@@ -401,6 +401,18 @@
     background:rgba(255,255,255,.06); }
   #s10 .mjref.on{ color:var(--bone); border-color:var(--bone-dim);
     background:rgba(255,255,255,.09); }
+  /* 初期化ボタン：普段は沈めて目立たせない。arm＝確認待ちは朱 */
+  #s10 .mjreset{ position:absolute; top:4.5vmin; right:calc(4.5vmin + 7.4em); z-index:6;
+    height:2.1em; padding:0 .7em 0 .8em; font:inherit; font-size:calc(.95rem * var(--fs));
+    line-height:1; letter-spacing:.1em; color:var(--bone-dim); background:none;
+    border:1px solid var(--bone-faint); border-radius:1.05em; cursor:pointer;
+    opacity:.55;
+    transition:color .3s var(--ease), border-color .3s var(--ease),
+               background .3s var(--ease), opacity .3s var(--ease); }
+  #s10 .mjreset:hover{ opacity:1; color:var(--bone); border-color:var(--bone);
+    background:rgba(255,255,255,.06); }
+  #s10 .mjreset.arm{ opacity:1; color:var(--dora); border-color:var(--dora);
+    background:rgba(192,50,43,.12); }
   #s10 .mjguide{ position:absolute; inset:0; z-index:31; cursor:pointer;
     display:flex; align-items:center; justify-content:center;
     background:rgba(5,26,16,.92);
@@ -528,6 +540,8 @@
       <button class="mjhelp" id="mjHelp" type="button" aria-label="和了の形の説明">？</button>
       <!-- 参考トグル：切り推奨（向聴が進む順→受け入れ枚数順の上位5枚）を手牌に添える -->
       <button class="mjref" id="mjRef" type="button" aria-pressed="false">参考</button>
+      <!-- 初期化：成就・硬貨・御守・設定の全消去。誤爆防止に二度押しで確定 -->
+      <button class="mjreset" id="mjReset" type="button" aria-label="全記録の初期化">初期化</button>
       <div class="mjguide" id="mjGuide">
         <div class="mjguide__panel">
           <h3>あがりの形は、ぜんぶで三つ</h3>
@@ -901,7 +915,8 @@ const s10game = (function(){
   }
 
   /* --- お守り屋 ---
-     代币＝一筒コイン：終局1枚＋聴牌流局はもう1枚＋和了は winCoins の簡易点数表ぶん。ページを跨いでは残らない。
+     代币＝一筒コイン：終局1枚＋聴牌流局はもう1枚＋和了は winCoins の簡易点数表ぶん。
+     残高と買い置きの御守は localStorage に持ち越す（保存は paintShop に集約）。
      効果は等級ごとの pool から購入時に抽選：将来は pool に足すだけで増やせる */
   const shopEl  = document.getElementById('mjShop');
   const pileEl  = document.getElementById('mjPile');
@@ -922,6 +937,9 @@ const s10game = (function(){
     sh0:    all => targetDeal(all, 0),
     tenhou: all => targetDeal(all, -1),
   };
+  try{ coins = Math.max(0, parseInt(localStorage.getItem('mjCoins'),10) || 0); }catch(e){}
+  try{ const b = JSON.parse(localStorage.getItem('mjBless'));
+    if(b && EFFECTS[b.id]) bless = b; }catch(e){}
   /* 満杯の一副から無作為の和了形14枚（雀頭+面子4）を34種indexで組む */
   function randWin14(){
     for(let tries=0; tries<64; tries++){
@@ -991,6 +1009,9 @@ const s10game = (function(){
         Math.min(wave++*.06, 1.5).toFixed(2)+'s';
   }
   function paintShop(){
+    try{ localStorage.setItem('mjCoins', coins);   // 描画時点＝残高確定時点なのでここで保存
+      if(bless) localStorage.setItem('mjBless', JSON.stringify(bless));
+      else localStorage.removeItem('mjBless'); }catch(e){}
     paintPile();
     charmEls.forEach((el,i)=>{
       const can = !bless && coins>=CHARMS[i].cost;
@@ -1407,6 +1428,29 @@ const s10game = (function(){
     refEl.setAttribute('aria-pressed', String(refOn));
     try{ localStorage.setItem('mjRefOn', refOn?'1':'0'); }catch(e){}
     paint({...lastOpts, deal:false});              // 今の局面に即反映
+  });
+
+  /* --- 初期化：成就・硬貨・御守・参考設定をまとめて消す。二度押しで確定 --- */
+  const resetEl = document.getElementById('mjReset');
+  let resetArm = 0;
+  function wipeAll(){
+    try{ ['mjYakuAchv','mjYakuAchvNew','mjCoins','mjBless','mjRefOn']
+      .forEach(k=>localStorage.removeItem(k)); }catch(e){}
+    achv = {}; paintAchv(); clearNews();
+    coins = 0; bless = null; paintShop();
+    refOn = false; refEl.classList.remove('on'); refEl.setAttribute('aria-pressed','false');
+    paint({...lastOpts, deal:false});
+  }
+  resetEl.addEventListener('click', e=>{ e.stopPropagation();
+    if(!resetArm){                                 // 一度目は確認待ちにするだけ
+      resetEl.classList.add('arm'); resetEl.textContent='本当に？';
+      resetArm = setTimeout(()=>{ resetArm=0;
+        resetEl.classList.remove('arm'); resetEl.textContent='初期化'; }, 3000);
+      return;
+    }
+    clearTimeout(resetArm); resetArm = 0;
+    resetEl.classList.remove('arm'); resetEl.textContent='初期化';
+    wipeAll();
   });
 
   /* 検証用フック（発表では未使用） */

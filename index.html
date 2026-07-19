@@ -391,28 +391,38 @@
                background .3s var(--ease); }
   #s10 .mjhelp:hover{ color:var(--bone); border-color:var(--bone);
     background:rgba(255,255,255,.06); }
+  /* 参考トグル：豆電球の図像のみ。on＝点灯（増白＋輝き） */
   #s10 .mjref{ position:absolute; top:4.5vmin; right:calc(4.5vmin + 2.9em); z-index:6;
-    height:2.1em; padding:0 .7em 0 .8em; font:inherit; font-size:calc(.95rem * var(--fs));
-    line-height:1; letter-spacing:.1em; color:var(--bone-dim); background:none;
-    border:1px solid var(--bone-faint); border-radius:1.05em; cursor:pointer;
+    width:2.1em; height:2.1em; padding:0; font-size:calc(.95rem * var(--fs));
+    display:inline-flex; align-items:center; justify-content:center;
+    color:var(--bone-dim); background:none;
+    border:1px solid var(--bone-faint); border-radius:50%; cursor:pointer;
     transition:color .3s var(--ease), border-color .3s var(--ease),
                background .3s var(--ease); }
+  #s10 .mjref svg{ width:1.05em; height:1.05em; fill:none; stroke:currentColor;
+    stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
   #s10 .mjref:hover{ color:var(--bone); border-color:var(--bone);
     background:rgba(255,255,255,.06); }
   #s10 .mjref.on{ color:var(--bone); border-color:var(--bone-dim);
     background:rgba(255,255,255,.09); }
-  /* 初期化ボタン：普段は沈めて目立たせない。arm＝確認待ちは朱 */
-  #s10 .mjreset{ position:absolute; top:4.5vmin; right:calc(4.5vmin + 7.4em); z-index:6;
-    height:2.1em; padding:0 .7em 0 .8em; font:inherit; font-size:calc(.95rem * var(--fs));
-    line-height:1; letter-spacing:.1em; color:var(--bone-dim); background:none;
-    border:1px solid var(--bone-faint); border-radius:1.05em; cursor:pointer;
+  #s10 .mjref.on svg{ filter:drop-shadow(0 0 6px rgba(243,239,227,.65)); }
+  /* 初期化ボタン：円環矢印の図像のみ。普段は沈め、arm＝確認待ちは朱に回る */
+  #s10 .mjreset{ position:absolute; top:4.5vmin; right:calc(4.5vmin + 5.8em); z-index:6;
+    width:2.1em; height:2.1em; padding:0; font-size:calc(.95rem * var(--fs));
+    display:inline-flex; align-items:center; justify-content:center;
+    color:var(--bone-dim); background:none;
+    border:1px solid var(--bone-faint); border-radius:50%; cursor:pointer;
     opacity:.55;
     transition:color .3s var(--ease), border-color .3s var(--ease),
                background .3s var(--ease), opacity .3s var(--ease); }
+  #s10 .mjreset svg{ width:1.05em; height:1.05em; fill:none; stroke:currentColor;
+    stroke-width:2; stroke-linecap:round; stroke-linejoin:round; }
   #s10 .mjreset:hover{ opacity:1; color:var(--bone); border-color:var(--bone);
     background:rgba(255,255,255,.06); }
   #s10 .mjreset.arm{ opacity:1; color:var(--dora); border-color:var(--dora);
     background:rgba(192,50,43,.12); }
+  #s10 .mjreset.arm svg{ animation:resetSpin .5s var(--ease); }
+  @keyframes resetSpin{ from{ transform:rotate(-360deg); } }
   #s10 .mjguide{ position:absolute; inset:0; z-index:31; cursor:pointer;
     display:flex; align-items:center; justify-content:center;
     background:rgba(5,26,16,.92);
@@ -481,6 +491,19 @@
   #s10 .mjguide__apx .yd i{ font-style:normal; font-size:.8em;
     color:var(--bone-dim); margin-right:.18em; }
   #s10 .mjguide__apx .yd small{ display:block; margin-top:.12em; font-size:.84em; }
+  /* 達成トースト：画面上部中央に順番に流れる（キューで一度に一枚） */
+  #s10 .mjtoast{ position:absolute; top:13vmin; left:50%; z-index:40;
+    transform:translateX(-50%); pointer-events:none; white-space:nowrap;
+    padding:.5em 1.2em; border-radius:999px;
+    background:rgba(5,26,16,.92); border:1px solid var(--bone-faint);
+    color:var(--bone); letter-spacing:.14em;
+    font-size:calc(.9rem * var(--fs));
+    animation:toastIn .4s var(--ease) both;
+    transition:opacity .45s var(--ease), transform .45s var(--ease); }
+  #s10 .mjtoast i{ font-style:normal; color:var(--dora); margin-right:.45em; }
+  #s10 .mjtoast.out{ opacity:0; transform:translate(-50%,-12px); }
+  @keyframes toastIn{ from{ opacity:0; transform:translate(-50%,10px); }
+    to{ opacity:1; transform:translateX(-50%); } }
   /* 成就：一度でも和了に含めた役へ朱のチェック（localStorage に永続） */
   #s10 .mjguide__apx .yn.got::before{
     content:'✓'; margin-right:.4em;
@@ -539,9 +562,11 @@
            牌は Unicode 一色（.t の中身は起動時に tileText で単色化） -->
       <button class="mjhelp" id="mjHelp" type="button" aria-label="和了の形の説明">？</button>
       <!-- 参考トグル：切り推奨（向聴が進む順→受け入れ枚数順の上位5枚）を手牌に添える -->
-      <button class="mjref" id="mjRef" type="button" aria-pressed="false">参考</button>
+      <button class="mjref" id="mjRef" type="button" aria-pressed="false"
+        aria-label="切り推奨の参考表示" title="参考——切り推奨を表示"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1.3.5 2.6 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><line x1="9" y1="18" x2="15" y2="18"/><line x1="10" y1="22" x2="14" y2="22"/></svg></button>
       <!-- 初期化：成就・硬貨・御守・設定の全消去。誤爆防止に二度押しで確定 -->
-      <button class="mjreset" id="mjReset" type="button" aria-label="全記録の初期化">初期化</button>
+      <button class="mjreset" id="mjReset" type="button" aria-label="全記録の初期化"
+        title="全記録の初期化（二度押しで確定）"><svg viewBox="0 0 24 24" aria-hidden="true"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg></button>
       <div class="mjguide" id="mjGuide">
         <div class="mjguide__panel">
           <h3>あがりの形は、ぜんぶで三つ</h3>
@@ -651,6 +676,30 @@
             <span class="yd">配牌の時点でもう完成している。持って生まれた運</span>
             <span class="yn">数え役満</span>
             <span class="yd">小さな役でも、積みに積んで13翻に届けば役満扱い</span>
+          </div>
+          <hr class="mjguide__hr">
+          <h3>成就帳</h3>
+          <div class="mjguide__apx">
+            <span class="yn" data-ma="firstWin">初和了</span>
+            <span class="yd">初めてのツモ和了</span>
+            <span class="yn" data-ma="firstYkm">初役満</span>
+            <span class="yd">役満で和了する</span>
+            <span class="yn" data-ma="firstRiichi">初リーチ</span>
+            <span class="yd">初めての立直宣言</span>
+            <span class="yn" data-ma="firstKan">初暗槓</span>
+            <span class="yd">初めての暗槓</span>
+            <span class="yn" data-ma="miss">見逃し</span>
+            <span class="yd">和了れるツモをあえて見送る</span>
+            <span class="yn" data-ma="firstRyu">初流局</span>
+            <span class="yd">山の最後まで打ち切る</span>
+            <span class="yn" data-ma="tenpaiRyu">形式聴牌</span>
+            <span class="yd">聴牌のまま流局を迎える</span>
+            <span class="yn" data-ma="firstCharm">初御守</span>
+            <span class="yd">お守りを初めて買う</span>
+            <span class="yn" data-ma="bigCharm">大盤振る舞い</span>
+            <span class="yd">一筒100枚のお守りを買う</span>
+            <span class="yn" data-ma="rich">貯め上手</span>
+            <span class="yd">一筒コインを50枚ためる</span>
           </div>
           <p class="mjguide__close">枠のそとをクリックで卓へ戻る</p>
         </div>
@@ -1024,6 +1073,7 @@ const s10game = (function(){
      見た目は役名・翻数の場所から一枚ずつ財布へ飛んで積もる */
   function gainCoins(n){
     coins += n; inflight += n; paintShop();
+    if(coins>=50) metaAchv('rich');
     const src = infoEl.getBoundingClientRect();
     const pr  = pileEl.getBoundingClientRect();
     const unit = parseFloat(getComputedStyle(pileEl).fontSize)*.48;  // 山コインの1em[px]
@@ -1056,6 +1106,8 @@ const s10game = (function(){
     coins -= ch.cost;
     bless = ch.pool[(Math.random()*ch.pool.length)|0];   // 抽選（現状は各1種）
     paintShop();
+    metaAchv('firstCharm');
+    if(i===2) metaAchv('bigCharm');
     charmEls[i].classList.add('bought');
     setTimeout(()=>charmEls[i].classList.remove('bought'), 550);
   }
@@ -1267,7 +1319,9 @@ const s10game = (function(){
     stampEl.className='mjstamp show ask';
   }
   function retractOffer(){
-    if(stampEl.classList.contains('ask')) stampEl.className='mjstamp';
+    if(!stampEl.classList.contains('ask')) return;
+    stampEl.className='mjstamp';
+    metaAchv('miss');                              // 和了の択を蹴った＝見逃し
   }
   function discard(k, fromDrawn){
     if(phase!=='discard') return;
@@ -1282,6 +1336,7 @@ const s10game = (function(){
       riichiArm=false; riichi=true; riichiAt=turn;
       riichiDbl = turn===1 && !kans.length;        // 第一打かつ槓で崩れていない
       secEl.classList.add('riichi');
+      metaAchv('firstRiichi');
       river.push(fromDrawn ? drawn : hand[k]); riichiIdx = river.length-1;
       hand = rest; drawn=null; phase='wait';
       paint(); paintRiver(); status();
@@ -1307,6 +1362,7 @@ const s10game = (function(){
     const a14 = hand.concat(drawn===null ? [] : [drawn]);
     hand = sorted(a14.filter(t=>T34(t)!==k));
     kans.push(k);
+    metaAchv('firstKan');
     drawn = pool.shift();                          // 嶺上の順は配牌時に確定済み
     if(isAgari(hand.concat(drawn))){ rinshanWin=true;
       paint({agari:true}); offerWin(); status(); return; }  // 嶺上も択（phase は discard）
@@ -1351,6 +1407,8 @@ const s10game = (function(){
           rinshan: rinshanWin, tenhou: turn===1 && !river.length && !kans.length,
           haitei: !deck.length && !rinshanWin });   // 最後の山牌ツモ（嶺上とは両立しない）
       recordAchv(y);
+      metaAchv('firstWin');
+      if(y.yakuman) metaAchv('firstYkm');
       infoEl.innerHTML = y.yakuman
         ? `<span class="mj-yaku ymn">${y.names.join('・')}</span><i>・</i>`
           + `<b class="ymn">${y.kazoe ? y.kazoe+'翻 数え役満' : '役満'}</b>`
@@ -1368,6 +1426,8 @@ const s10game = (function(){
       }
       else infoEl.innerHTML = `あと${sh}シャンテンでした`;
       gainCoins(sh===0 ? 2 : 1);                   // 終局の1枚 + 聴牌料1枚
+      metaAchv('firstRyu');
+      if(sh===0) metaAchv('tenpaiRyu');
     }
     againEl.classList.add('show');
   }
@@ -1394,27 +1454,61 @@ const s10game = (function(){
   const ACHV_KEY = 'mjYakuAchv';
   let achv = {};
   try{ achv = JSON.parse(localStorage.getItem(ACHV_KEY)) || {}; }catch(e){}
-  const ynEls = {};                              // 役名 → 図鑑の .yn 要素
-  guideEl.querySelectorAll('.mjguide__apx .yn').forEach(el=>{
+  const ynEls = {};                              // 役名 → 図鑑の .yn 要素（成就帳 data-ma は除外）
+  guideEl.querySelectorAll('.mjguide__apx .yn:not([data-ma])').forEach(el=>{
     ynEls[el.firstChild.textContent.trim()] = el; });
   function paintAchv(){
     for(const n in ynEls) ynEls[n].classList.toggle('got', !!achv[n]); }
   function recordAchv(y){
     const names = y.names.map(n => n.startsWith('役牌') ? '役牌' : n);
     if(y.kazoe) names.push('数え役満');
-    let hit = false;
-    names.forEach(n=>{ if(n in ynEls && !achv[n]){ achv[n]=1; hit=true; } });
-    if(hit){ try{ localStorage.setItem(ACHV_KEY, JSON.stringify(achv)); }catch(e){}
-      paintAchv();
-      helpEl.classList.add('news');
-      try{ localStorage.setItem(NEWS_KEY,'1'); }catch(e){} }
+    const fresh = [];
+    names.forEach(n=>{ if(n in ynEls && !achv[n]){ achv[n]=1; fresh.push(n); } });
+    if(fresh.length){ try{ localStorage.setItem(ACHV_KEY, JSON.stringify(achv)); }catch(e){}
+      paintAchv(); newsOn();
+      fresh.forEach(n=>toast('役・'+n)); }
   }
   paintAchv();
   const NEWS_KEY = 'mjYakuAchvNew';              // 未読の朱点：図鑑を開くまで残る
+  function newsOn(){ helpEl.classList.add('news');
+    try{ localStorage.setItem(NEWS_KEY,'1'); }catch(e){} }
   function clearNews(){ helpEl.classList.remove('news');
     try{ localStorage.removeItem(NEWS_KEY); }catch(e){} }
   helpEl.addEventListener('click', clearNews);
   try{ if(localStorage.getItem(NEWS_KEY)) helpEl.classList.add('news'); }catch(e){}
+
+  /* --- 成就帳：遊び全般の初達成。記録は図鑑の data-ma と対応、
+         達成の瞬間はトーストで知らせ、朱点も一緒に灯す --- */
+  const META_KEY = 'mjMetaAchv';
+  let meta = {};
+  try{ meta = JSON.parse(localStorage.getItem(META_KEY)) || {}; }catch(e){}
+  const maEls = {};
+  guideEl.querySelectorAll('[data-ma]').forEach(el=>{ maEls[el.dataset.ma] = el; });
+  function paintMeta(){
+    for(const k in maEls) maEls[k].classList.toggle('got', !!meta[k]); }
+  function metaAchv(id){
+    if(meta[id] || !maEls[id]) return;
+    meta[id] = 1;
+    try{ localStorage.setItem(META_KEY, JSON.stringify(meta)); }catch(e){}
+    paintMeta(); newsOn();
+    toast(maEls[id].textContent);
+  }
+  paintMeta();
+  /* トースト：キューで一枚ずつ。文言は自前の役名・成就名のみ */
+  const toastQ = []; let toastBusy = false;
+  function toast(label){
+    toastQ.push(label);
+    if(toastBusy) return; toastBusy = true;
+    (function next(){
+      const m = toastQ.shift();
+      if(m===undefined){ toastBusy = false; return; }
+      const t = document.createElement('div'); t.className = 'mjtoast';
+      t.innerHTML = '<i>✓</i>' + m;
+      secEl.appendChild(t);
+      setTimeout(()=>t.classList.add('out'), 2100);
+      setTimeout(()=>{ t.remove(); next(); }, 2600);
+    })();
+  }
 
   /* --- 参考トグル：入切は localStorage に覚える --- */
   const refEl = document.getElementById('mjRef');
@@ -1434,22 +1528,22 @@ const s10game = (function(){
   const resetEl = document.getElementById('mjReset');
   let resetArm = 0;
   function wipeAll(){
-    try{ ['mjYakuAchv','mjYakuAchvNew','mjCoins','mjBless','mjRefOn']
+    try{ ['mjYakuAchv','mjYakuAchvNew','mjMetaAchv','mjCoins','mjBless','mjRefOn']
       .forEach(k=>localStorage.removeItem(k)); }catch(e){}
-    achv = {}; paintAchv(); clearNews();
+    achv = {}; paintAchv(); meta = {}; paintMeta(); clearNews();
     coins = 0; bless = null; paintShop();
     refOn = false; refEl.classList.remove('on'); refEl.setAttribute('aria-pressed','false');
     paint({...lastOpts, deal:false});
   }
   resetEl.addEventListener('click', e=>{ e.stopPropagation();
-    if(!resetArm){                                 // 一度目は確認待ちにするだけ
-      resetEl.classList.add('arm'); resetEl.textContent='本当に？';
+    if(!resetArm){                                 // 一度目は確認待ち（朱＋一回転）にするだけ
+      resetEl.classList.add('arm');
       resetArm = setTimeout(()=>{ resetArm=0;
-        resetEl.classList.remove('arm'); resetEl.textContent='初期化'; }, 3000);
+        resetEl.classList.remove('arm'); }, 3000);
       return;
     }
     clearTimeout(resetArm); resetArm = 0;
-    resetEl.classList.remove('arm'); resetEl.textContent='初期化';
+    resetEl.classList.remove('arm');
     wipeAll();
   });
 
